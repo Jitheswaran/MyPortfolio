@@ -19,6 +19,13 @@
     });
   });
 
+  // Close mobile nav when resume link is clicked
+  document.querySelectorAll('a[href*="Jitheswaran_B_Resume"]').forEach(function (link) {
+    link.addEventListener('click', function () {
+      document.querySelector('.nav').classList.remove('is-open');
+    });
+  });
+
   // Mobile nav toggle
   var navToggle = document.querySelector('.nav-toggle');
   var nav = document.querySelector('.nav');
