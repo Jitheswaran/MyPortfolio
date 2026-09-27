@@ -11,5 +11,8 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Dependencies (if you add any later)
+# Dependencies
 node_modules/
+
+# Vercel
+.vercel/

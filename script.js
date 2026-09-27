@@ -19,9 +19,9 @@
     });
   });
 
-  // Close mobile nav when resume link is clicked
-  document.querySelectorAll('a[href*="Jitheswaran_Bhoopaul_Resume"]').forEach(function (link) {
-    link.addEventListener('click', function () {
+  // Close mobile nav when resume download is opened
+  document.querySelectorAll('[data-resume-download]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
       document.querySelector('.nav').classList.remove('is-open');
     });
   });
@@ -152,6 +152,209 @@
       openProjectModal(id);
     });
   });
+
+  // Resume download OTP flow
+  var resumeModal = document.getElementById('resume-modal');
+  var resumeForm = document.getElementById('resume-form');
+  var resumeOtpForm = document.getElementById('resume-otp-form');
+  var resumeVisitor = null;
+  var resumeDownloadUrl = '';
+
+  function showResumeStep(stepName) {
+    if (!resumeModal) return;
+    resumeModal.querySelectorAll('[data-resume-step]').forEach(function (step) {
+      step.hidden = step.getAttribute('data-resume-step') !== stepName;
+    });
+  }
+
+  function setResumeError(selector, message) {
+    var el = resumeModal ? resumeModal.querySelector(selector) : null;
+    if (!el) return;
+    if (message) {
+      el.hidden = false;
+      el.textContent = message;
+    } else {
+      el.hidden = true;
+      el.textContent = '';
+    }
+  }
+
+  function openResumeModal() {
+    if (!resumeModal) return;
+    resumeVisitor = null;
+    resumeDownloadUrl = '';
+    if (resumeForm) resumeForm.reset();
+    if (resumeOtpForm) resumeOtpForm.reset();
+    setResumeError('[data-resume-error]', '');
+    setResumeError('[data-resume-otp-error]', '');
+    showResumeStep('form');
+    resumeModal.classList.add('is-open');
+    resumeModal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+  }
+
+  function closeResumeModal() {
+    if (!resumeModal) return;
+    resumeModal.classList.remove('is-open');
+    resumeModal.setAttribute('aria-hidden', 'true');
+    if (!document.getElementById('project-modal') || !document.getElementById('project-modal').classList.contains('is-open')) {
+      document.body.classList.remove('modal-open');
+    }
+  }
+
+  function setButtonLoading(button, loading, loadingText) {
+    if (!button) return;
+    if (loading) {
+      button.dataset.originalText = button.textContent;
+      button.textContent = loadingText || 'Please wait...';
+      button.disabled = true;
+    } else {
+      button.textContent = button.dataset.originalText || button.textContent;
+      button.disabled = false;
+    }
+  }
+
+  document.querySelectorAll('[data-resume-download]').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      openResumeModal();
+    });
+  });
+
+  if (resumeModal) {
+    resumeModal.addEventListener('click', function (event) {
+      if (event.target.hasAttribute('data-resume-modal-close')) {
+        closeResumeModal();
+      }
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && resumeModal.classList.contains('is-open')) {
+        closeResumeModal();
+      }
+    });
+
+    var backBtn = resumeModal.querySelector('[data-resume-back]');
+    if (backBtn) {
+      backBtn.addEventListener('click', function () {
+        setResumeError('[data-resume-otp-error]', '');
+        showResumeStep('form');
+      });
+    }
+
+    var downloadLink = resumeModal.querySelector('[data-resume-download-link]');
+    if (downloadLink) {
+      downloadLink.addEventListener('click', function (e) {
+        if (!resumeDownloadUrl) {
+          e.preventDefault();
+          return;
+        }
+        downloadLink.setAttribute('href', resumeDownloadUrl);
+      });
+    }
+  }
+
+  if (resumeForm) {
+    resumeForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      setResumeError('[data-resume-error]', '');
+      var formData = new FormData(resumeForm);
+      var payload = {
+        firstName: String(formData.get('firstName') || '').trim(),
+        lastName: String(formData.get('lastName') || '').trim(),
+        email: String(formData.get('email') || '').trim(),
+        company: String(formData.get('company') || '').trim(),
+        role: String(formData.get('role') || '').trim()
+      };
+
+      if (!payload.firstName || !payload.lastName || !payload.email || !payload.company || !payload.role) {
+        setResumeError('[data-resume-error]', 'Please fill in all fields.');
+        return;
+      }
+
+      var submitBtn = resumeForm.querySelector('button[type="submit"]');
+      setButtonLoading(submitBtn, true, 'Sending OTP...');
+
+      fetch('/api/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(function (response) {
+          return response.json().then(function (data) {
+            return { ok: response.ok, data: data };
+          });
+        })
+        .then(function (result) {
+          if (!result.ok) {
+            throw new Error((result.data && result.data.error) || 'Failed to send OTP.');
+          }
+          resumeVisitor = payload;
+          var emailDisplay = resumeModal.querySelector('[data-resume-email-display]');
+          if (emailDisplay) emailDisplay.textContent = payload.email;
+          showResumeStep('otp');
+        })
+        .catch(function (err) {
+          setResumeError('[data-resume-error]', err.message || 'Failed to send OTP.');
+        })
+        .finally(function () {
+          setButtonLoading(submitBtn, false);
+        });
+    });
+  }
+
+  if (resumeOtpForm) {
+    resumeOtpForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      setResumeError('[data-resume-otp-error]', '');
+      if (!resumeVisitor) {
+        setResumeError('[data-resume-otp-error]', 'Please submit your details again.');
+        showResumeStep('form');
+        return;
+      }
+
+      var otp = String(new FormData(resumeOtpForm).get('otp') || '').trim();
+      if (!otp) {
+        setResumeError('[data-resume-otp-error]', 'Please enter the OTP.');
+        return;
+      }
+
+      var submitBtn = resumeOtpForm.querySelector('button[type="submit"]');
+      setButtonLoading(submitBtn, true, 'Verifying...');
+
+      fetch('/api/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resumeVisitor.email, otp: otp })
+      })
+        .then(function (response) {
+          return response.json().then(function (data) {
+            return { ok: response.ok, data: data };
+          });
+        })
+        .then(function (result) {
+          if (!result.ok || !result.data.token) {
+            throw new Error((result.data && result.data.error) || 'OTP verification failed.');
+          }
+          resumeDownloadUrl = '/api/download-resume?token=' + encodeURIComponent(result.data.token);
+          var downloadLink = resumeModal.querySelector('[data-resume-download-link]');
+          if (downloadLink) downloadLink.setAttribute('href', resumeDownloadUrl);
+          showResumeStep('done');
+          var tempLink = document.createElement('a');
+          tempLink.href = resumeDownloadUrl;
+          tempLink.setAttribute('download', 'Jitheswaran_Bhoopaul_Resume.pdf');
+          document.body.appendChild(tempLink);
+          tempLink.click();
+          tempLink.remove();
+        })
+        .catch(function (err) {
+          setResumeError('[data-resume-otp-error]', err.message || 'OTP verification failed.');
+        })
+        .finally(function () {
+          setButtonLoading(submitBtn, false);
+        });
+    });
+  }
 
   // Footer year
   var yearEl = document.getElementById('year');
