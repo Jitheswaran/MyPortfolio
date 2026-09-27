@@ -25,7 +25,7 @@
         <li><a href="#certifications" class="nav-link">Certifications</a></li>
         <li><a href="#projects" class="nav-link">Projects</a></li>
         <li><a href="#contact" class="nav-link">Contact</a></li>
-        <li><a href="resume/Jitheswaran_Bhoopaul_Resume.pdf?v=20260927" download="Jitheswaran_Bhoopaul_Resume.pdf" class="nav-link nav-resume">Resume</a></li>
+        <li><button type="button" class="nav-link nav-resume" data-resume-download>Resume</button></li>
       </ul>
     </nav>
   </header>
@@ -38,7 +38,7 @@
         <p class="hero-tagline">Quality Automation Engineer</p>
         <div class="hero-cta">
           <a href="#projects" class="btn btn-primary">View My Work</a>
-          <a href="resume/Jitheswaran_Bhoopaul_Resume.pdf?v=20260927" download="Jitheswaran_Bhoopaul_Resume.pdf" class="btn btn-outline">Download Resume</a>
+          <button type="button" class="btn btn-outline" data-resume-download>Download Resume</button>
         </div>
       </div>
       <div class="hero-visual">
@@ -160,6 +160,66 @@
       <button class="project-modal-close" type="button" aria-label="Close project details" data-project-modal-close>×</button>
       <div class="project-modal-content">
         <!-- Filled dynamically with JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <div class="resume-modal" id="resume-modal" aria-hidden="true">
+    <div class="resume-modal-backdrop" data-resume-modal-close></div>
+    <div class="resume-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="resume-modal-title">
+      <button class="resume-modal-close" type="button" aria-label="Close resume download" data-resume-modal-close>×</button>
+
+      <div class="resume-step" data-resume-step="form">
+        <h2 id="resume-modal-title">Download Resume</h2>
+        <p class="resume-modal-intro">Please share your details. We’ll email a one-time code to verify your email before download.</p>
+        <form id="resume-form" class="resume-form" novalidate>
+          <div class="resume-form-row">
+            <label>
+              First name
+              <input type="text" name="firstName" required autocomplete="given-name" />
+            </label>
+            <label>
+              Last name
+              <input type="text" name="lastName" required autocomplete="family-name" />
+            </label>
+          </div>
+          <label>
+            Email
+            <input type="email" name="email" required autocomplete="email" />
+          </label>
+          <label>
+            Company
+            <input type="text" name="company" required autocomplete="organization" />
+          </label>
+          <label>
+            Role / designation
+            <input type="text" name="role" required autocomplete="organization-title" />
+          </label>
+          <p class="resume-error" data-resume-error hidden></p>
+          <button type="submit" class="btn btn-primary resume-submit">Send OTP</button>
+        </form>
+      </div>
+
+      <div class="resume-step" data-resume-step="otp" hidden>
+        <h2>Enter OTP</h2>
+        <p class="resume-modal-intro">We sent a 6-digit code to <strong data-resume-email-display></strong>. Enter it below to download the resume.</p>
+        <form id="resume-otp-form" class="resume-form" novalidate>
+          <label>
+            OTP
+            <input type="text" name="otp" inputmode="numeric" pattern="[0-9]*" maxlength="6" required autocomplete="one-time-code" />
+          </label>
+          <p class="resume-error" data-resume-otp-error hidden></p>
+          <div class="resume-otp-actions">
+            <button type="submit" class="btn btn-primary resume-submit">Verify &amp; Download</button>
+            <button type="button" class="btn btn-outline" data-resume-back>Back</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="resume-step" data-resume-step="done" hidden>
+        <h2>Download starting</h2>
+        <p class="resume-modal-intro">Your email is verified. If the download does not start automatically, <a href="#" data-resume-download-link>click here</a>.</p>
+        <button type="button" class="btn btn-primary" data-resume-modal-close>Close</button>
       </div>
     </div>
   </div>

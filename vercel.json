@@ -1,0 +1,13 @@
+{
+  "rewrites": [
+    {
+      "source": "/private/(.*)",
+      "destination": "/api/not-found"
+    }
+  ],
+  "functions": {
+    "api/download-resume.js": {
+      "includeFiles": "private/**"
+    }
+  }
+}
