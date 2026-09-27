@@ -20,7 +20,7 @@
   });
 
   // Close mobile nav when resume link is clicked
-  document.querySelectorAll('a[href*="Jitheswaran_B_Resume"]').forEach(function (link) {
+  document.querySelectorAll('a[href*="Jitheswaran_Bhoopaul_Resume"]').forEach(function (link) {
     link.addEventListener('click', function () {
       document.querySelector('.nav').classList.remove('is-open');
     });
